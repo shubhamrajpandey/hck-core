@@ -158,7 +158,7 @@ export default function Login() {
               className="flex items-center justify-center gap-3 border border-gray-400 py-3 rounded-lg md:w-[415px] md:h-[60px] w-full h-auto cursor-pointer"
             >
               <Image
-                src="/imgs/msoutlook.jpeg"
+                src="/imgs/misc/msoutlook.jpeg"
                 alt="Microsoft Outlook"
                 width={38}
                 height={38}
@@ -181,7 +181,7 @@ export default function Login() {
         {/* Side illustration */}
         <div className="hidden relative w-1/2 lg:flex items-center justify-center p-5 md:w-[500px] min-w-[300px] h-[300px] md:h-[500px]">
           <Image
-            src="/imgs/image.png"
+            src="/imgs/ui/image.png"
             alt="Illustration"
             fill
             className="object-contain mt-15 mr-20"

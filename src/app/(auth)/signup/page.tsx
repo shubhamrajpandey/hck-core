@@ -262,7 +262,7 @@ const Signin: React.FC = () => {
 				{/* Side illustration */}
 				<div className="hidden relative w-1/2 lg:flex items-center justify-center p-5 md:w-[500px] min-w-[300px] h-[300px] md:h-[500px]">
 					<Image
-						src="/imgs/sign-up.svg"
+						src="/imgs/ui/sign-up.svg"
 						alt="Signup Illustration"
 						fill
 						className="object-contain mt-15 mr-20"
