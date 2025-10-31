@@ -1,4 +1,4 @@
-# HCK Core - Deployment Platform
+# HCK Core 
 
 **Contributors:** Frontend - Shubham Raj Pandey, Biswas Chhantyal, Samir Pemi Magar
 
