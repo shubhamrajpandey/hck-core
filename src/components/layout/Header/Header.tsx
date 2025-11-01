@@ -10,12 +10,13 @@ export const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [faculty, setFaculty] = useState<string | null>(null);
+  const [faculty, setFaculty] = useState<string | null>(null); // <-- state for faculty
   const dropdownRef = useRef<HTMLLIElement>(null);
 
   const router = useRouter();
   const pathname = usePathname();
 
+  // Set faculty from localStorage/sessionStorage once
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedFaculty =
@@ -25,7 +26,7 @@ export const Header = () => {
     }
   }, []);
 
-
+  // Check login state
   useEffect(() => {
     const checkLogin = () => {
       const token =
@@ -35,19 +36,17 @@ export const Header = () => {
 
     checkLogin();
     window.addEventListener("authChanged", checkLogin);
-
-    return () => {
-      window.removeEventListener("authChanged", checkLogin);
-    };
+    return () => window.removeEventListener("authChanged", checkLogin);
   }, []);
 
+  // Also check login on route change
   useEffect(() => {
-    // Also check login whenever route changes
     const token =
       localStorage.getItem("token") || sessionStorage.getItem("token");
     setIsLoggedIn(!!token);
   }, [pathname]);
 
+  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -58,15 +57,13 @@ export const Header = () => {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     sessionStorage.removeItem("token");
-    setIsLoggedIn(false); // instantly update UI
+    setIsLoggedIn(false);
     window.dispatchEvent(new Event("authChanged"));
     router.push("/login");
   };
@@ -172,12 +169,6 @@ export const Header = () => {
                           sessionStorage.getItem("email")
                         : null;
                     const name = email ? email.split("@")[0] : "User";
-
-                    const faculty =
-                      typeof window !== "undefined"
-                        ? localStorage.getItem("facultyName") ||
-                          sessionStorage.getItem("facultyName")
-                        : null;
 
                     return (
                       <div className="px-5 py-3 bg-[#74BF44]/10 flex items-center gap-3 border-b border-[#74BF44]/20">

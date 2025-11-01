@@ -5,8 +5,7 @@ import {
 	SheetContent,
 	SheetClose,
 	SheetHeader,
-	SheetTitle,
-	SheetDescription,
+
 } from "@/components/ui/sheet";
 import { FiUser, FiLogOut } from "react-icons/fi";
 import Link from "next/link";
