@@ -10,10 +10,21 @@ export const Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [faculty, setFaculty] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLLIElement>(null);
 
   const router = useRouter();
   const pathname = usePathname();
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedFaculty =
+        localStorage.getItem("facultyName") ||
+        sessionStorage.getItem("facultyName");
+      setFaculty(storedFaculty);
+    }
+  }, []);
+
 
   useEffect(() => {
     const checkLogin = () => {
@@ -28,6 +39,13 @@ export const Header = () => {
     return () => {
       window.removeEventListener("authChanged", checkLogin);
     };
+  }, []);
+
+  useEffect(() => {
+    // Also check login whenever route changes
+    const token =
+      localStorage.getItem("token") || sessionStorage.getItem("token");
+    setIsLoggedIn(!!token);
   }, [pathname]);
 
   useEffect(() => {
@@ -48,19 +66,21 @@ export const Header = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     sessionStorage.removeItem("token");
+    setIsLoggedIn(false); // instantly update UI
     window.dispatchEvent(new Event("authChanged"));
     router.push("/login");
   };
 
   return (
-    <header className="text-black bg-white h-[90px] fixed w-full font-poppins z-50 border-b border-[#68686833] shadow-sm">
-      <div className="container mx-auto flex justify-between items-center h-full px-4">
+    <header className="text-black bg-white h-[65px] md:h-[90px] fixed w-full font-poppins z-50 border-b border-[#68686833] shadow-sm">
+      <div className="container mx-auto flex justify-between items-center h-full px-4 sm:px-6">
         {/* Logo */}
         <Link href="/home">
           <div className="items-center justify-center">
             <svg
-              width="75"
-              height="60"
+              width="60"
+              height="45"
+              className="md:w-[75px] md:h-[60px]"
               viewBox="0 0 84 66"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -145,7 +165,6 @@ export const Header = () => {
 
               {profileOpen && (
                 <div className="absolute right-[-80px] mt-3 w-65 h-43 bg-white rounded-[8px] shadow-lg border border-[#74BF44]/30 z-50 backdrop-blur-sm overflow-hidden transition-all duration-200">
-                  {/* Fetch student + faculty data from localStorage */}
                   {(() => {
                     const email =
                       typeof window !== "undefined"
@@ -221,12 +240,13 @@ export const Header = () => {
 
         {/* Mobile Menu Button */}
         <button
-          className="lg:hidden text-3xl focus:outline-none"
+          className="lg:hidden text-2xl md:text-3xl focus:outline-none"
           onClick={() => setMenuOpen(!menuOpen)}
         >
           <FiMenu className="text-black" />
         </button>
       </div>
+
       <MobileSidebar
         isLoggedIn={isLoggedIn}
         handleLogout={handleLogout}

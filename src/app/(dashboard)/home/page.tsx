@@ -6,12 +6,26 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Counter from "@/components/animation/Counter";
 
 export default function HomeSection() {
   const router = useRouter();
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 400) setShowScrollTop(true);
+      else setShowScrollTop(false);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   useEffect(() => {
     const token =
@@ -56,9 +70,24 @@ export default function HomeSection() {
     }
   };
   return (
-    <section className="relative bg-white text-black font-poppins overflow-hidden">
+    <section className="relative bg-white text-black font-poppins overflow-hidden mt-[-25px] md:mt-0">
+      {/* Scroll to Top Button */}
+      <AnimatePresence>
+        {showScrollTop && (
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            onClick={scrollToTop}
+            className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50 bg-[#74BF44] text-white w-10 h-10 md:w-12 md:h-12 rounded-full shadow-lg flex items-center justify-center text-lg"
+          >
+            ↑
+          </motion.button>
+        )}
+      </AnimatePresence>
+
       {/* HERO SECTION */}
-      <div className="container mx-auto flex flex-col md:flex-row items-center gap-10 sm:gap-16 py-10 px-4 mt-20">
+      <div className="container mx-auto flex flex-col md:flex-row items-center gap-10 sm:gap-16 py-5 px-4 mt-20">
         {/* Left Content */}
         <motion.div
           className="flex-1"
@@ -111,7 +140,7 @@ export default function HomeSection() {
             </div>
             <div className="pr-6 sm:pr-8 border-r border-gray-300">
               <h3 className="text-2xl sm:text-3xl md:text-[34px] font-[700] text-[#FFC93F]">
-                <Counter to={100} duration={2} suffix="+" />
+                <Counter to={80} duration={2} suffix="+" />
               </h3>
               <p className="text-gray-600 text-sm sm:text-base">
                 Faculty Mentors
@@ -119,7 +148,7 @@ export default function HomeSection() {
             </div>
             <div>
               <h3 className="text-2xl sm:text-3xl md:text-[34px] font-[700] text-[#74BF44]">
-                <Counter to={5000} duration={2} suffix="k+" />
+                <Counter to={1000} duration={2} suffix="+" />
               </h3>
               <p className="text-gray-600 text-sm sm:text-base">
                 Resources Shared

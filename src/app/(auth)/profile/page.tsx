@@ -27,6 +27,13 @@ export default function Profile() {
   const { data: studentFaculty, error, isError, isLoading } = useGetFaculty();
 
   useEffect(() => {
+    if (studentFaculty?.name) {
+      localStorage.setItem("facultyName", studentFaculty.name);
+      sessionStorage.setItem("facultyName", studentFaculty.name);
+    }
+  }, [studentFaculty]);
+
+  useEffect(() => {
     const token =
       localStorage.getItem("token") || sessionStorage.getItem("token");
     const role = localStorage.getItem("Role") || sessionStorage.getItem("Role");
@@ -96,12 +103,10 @@ export default function Profile() {
       </p>
     );
 
- 
-
   return (
     <>
       {isChecked && (
-        <div className="flex flex-col items-center min-h-screen w-full bg-[#F8F8F8] px-4 sm:px-6 lg:px-8 mt-[90px]">
+        <div className="flex flex-col items-center min-h-screen w-full bg-[#F8F8F8] px-4 sm:px-6 lg:px-8 mt-[90px] ">
           {/* Header */}
           <div className="mt-20 w-full text-center flex flex-col">
             <h1 className="text-[28px] sm:text-[35px] text-[#74BF44] font-[500] mb-4 tracking-[1.3px]">
