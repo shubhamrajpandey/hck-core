@@ -209,7 +209,7 @@ export default function ModuleOverview() {
                       <th className="py-2 px-3 font-normal">Code</th>
 
                       <th className="py-2 px-3 font-normal">Level</th>
-                      <th className="py-2 px-3 font-normal">Assign</th>
+                      
                       <th className="py-2 px-3 font-normal">Status</th>
                       <th className="py-2 px-3 font-normal">Actions</th>
                     </tr>
@@ -254,11 +254,7 @@ export default function ModuleOverview() {
                             {mod.level?.name || "N/A"}
                           </td>
 
-                          <td className="text-[18px] text-gray-600 py-5 px-3">
-                            <span className="bg-[#A4C93A] text-white text-xs font-medium px-3 py-2 rounded-[7px]">
-                              Active
-                            </span>
-                          </td>
+                         
                           <td className="text-[18px] text-gray-600 py-5 px-3">
                             <span className="bg-[#A4C93A] text-white text-xs font-medium px-3 py-2 rounded-[7px]">
                               Active

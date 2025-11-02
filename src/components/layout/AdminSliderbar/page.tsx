@@ -88,7 +88,7 @@ export default function AdminSlideBar({
               transition={{ duration: 0.2, ease: "easeInOut" }}
             >
               <Image
-                src="/imgs/icons/logo.png"
+                src="/imgs/icons/hck core logo.svg"
                 alt="HCK Core Logo"
                 width={60}
                 height={50}

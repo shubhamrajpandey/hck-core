@@ -143,17 +143,7 @@ export default function DashBoard() {
               <MostcontentModerator />
 
               <TopContributors
-                contributors={[
-                  { name: "Alice Johnson", contributions: 15 },
-                  { name: "Bob Smith", contributions: 12 },
-                  { name: "Charlie Brown", contributions: 8 },
-                  { name: "Alice Johnson", contributions: 15 },
-                  { name: "Bob Smith", contributions: 12 },
-                  { name: "Charlie Brown", contributions: 8 },
-                  { name: "Alice Johnson", contributions: 15 },
-                  { name: "Bob Smith", contributions: 12 },
-                  { name: "Charlie Brown", contributions: 8 },
-                ]}
+               
               />
             </div>
           </div>

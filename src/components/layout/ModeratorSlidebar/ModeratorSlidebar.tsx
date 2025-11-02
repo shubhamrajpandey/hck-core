@@ -64,15 +64,7 @@ export default function MOderatorSlideBar() {
             className="w-[140px] h-[100px]"
           />
         </div>
-        <div className="mt-7 cursor-pointer">
-          <Image
-            src="/imgs/icons/collapse.svg"
-            alt="HCK Core Logo"
-            width={40}
-            height={40}
-            className="w-[30px] h-[30px]"
-          />
-        </div>
+        
       </div>
       <nav className="flex-1 px-4 py-6 space-y-3 text-[17px] font-[500] tracking-[-0.18px]">
         {navItems.map((item) => {
@@ -103,10 +95,10 @@ export default function MOderatorSlideBar() {
             </div>
             <div>
               <p className="text-[15px] font-[500] text-gray-900">
-                Bisjal Khadka
+                Moderator
               </p>
               <p className="text-xs text-[#74BF44] font-semibold">
-                Module Leader
+                HCK
               </p>
             </div>
           </div>

@@ -1,5 +1,5 @@
 "use client";
-import ModeratorDashboardBox from "@/components/dashboard/DashboardBox/moderatorDashboardBox";
+import ModeratorDashboardBox from "@/components/dashboard/AssignDashboard/assignDashbox";
 import TopContributors from "@/components/dashboard/RecentActivity/TopContributors";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -23,6 +23,8 @@ export default function DashBoard() {
   const [isChecked, setisChecked] = useState(false);
   const [modules, setModules] = useState<ModuleStats[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [page, setPage] = useState<number>(0);
+  const itemsPerPage = 6;
   const router = useRouter();
 
   useEffect(() => {
@@ -40,7 +42,7 @@ export default function DashBoard() {
       try {
         setLoading(true);
 
-        const res = await axiosInstance.get("/modules/stats?page=1&limit=6", {
+        const res = await axiosInstance.get("/modules/stats?page=1&limit=50", {
           headers: {
             Authorization: `Bearer ${StoredToken}`,
           },
@@ -66,6 +68,17 @@ export default function DashBoard() {
 
     fetchModules();
   }, [router]);
+
+  const totalPages = Math.ceil(modules.length / itemsPerPage);
+  const currentModules = modules.slice(page * itemsPerPage, (page + 1) * itemsPerPage);
+
+  const handlePrev = () => {
+    if (page > 0) setPage(page - 1);
+  };
+
+  const handleNext = () => {
+    if (page < totalPages - 1) setPage(page + 1);
+  };
 
   return (
     <>
@@ -106,18 +119,14 @@ export default function DashBoard() {
 
               <div className="grid gap-4 sm:gap-6 md:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {loading ? (
-                  Array.from({ length: 6 }).map((_, i) => (
+                  Array.from({ length: itemsPerPage }).map((_, i) => (
                     <div
                       key={i}
                       className="p-4 border border-gray-300 rounded-lg shadow-md bg-white animate-pulse w-full sm:w-[350px] md:w-[400px] lg:w-[430px] h-[250px]"
-                    >
-                      <div className="h-5 bg-gray-300 rounded w-3/4 mb-3"></div>
-                      <div className="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
-                      <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-                    </div>
+                    ></div>
                   ))
-                ) : modules.length > 0 ? (
-                  modules.map((mod) => (
+                ) : currentModules.length > 0 ? (
+                  currentModules.map((mod) => (
                     <ModeratorDashboardBox
                       key={mod.id}
                       title={mod.name}
@@ -134,23 +143,36 @@ export default function DashBoard() {
                   <p className="text-gray-600"> No modules found.</p>
                 )}
               </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-4 mt-4">
+                  <button
+                    onClick={handlePrev}
+                    disabled={page === 0}
+                    className="px-3 py-1 text-gray-700 border border-gray-300 rounded disabled:opacity-40"
+                  >
+                    &lt;
+                  </button>
+                  <span className="text-gray-700 font-medium">
+                    {page + 1} / {totalPages}
+                  </span>
+                  <button
+                    onClick={handleNext}
+                    disabled={page === totalPages - 1}
+                    className="px-3 py-1 text-gray-700 border border-gray-300 rounded disabled:opacity-40"
+                  >
+                    &gt;
+                  </button>
+                </div>
+              )}
             </div>
 
-            <div className="flex flex-col lg:flex-row gap-32 mt-6 mb-14">
+            <div className="flex flex-col lg:flex-row gap-24 mt-6 mb-14">
               <MostcontentRealModerator />
 
               <TopContributors
-                contributors={[
-                  { name: "Alice Johnson", contributions: 15 },
-                  { name: "Bob Smith", contributions: 12 },
-                  { name: "Charlie Brown", contributions: 8 },
-                  { name: "Alice Johnson", contributions: 15 },
-                  { name: "Bob Smith", contributions: 12 },
-                  { name: "Charlie Brown", contributions: 8 },
-                  { name: "Alice Johnson", contributions: 15 },
-                  { name: "Bob Smith", contributions: 12 },
-                  { name: "Charlie Brown", contributions: 8 },
-                ]}
+                
               />
             </div>
           </div>

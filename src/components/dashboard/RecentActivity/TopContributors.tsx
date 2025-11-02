@@ -1,20 +1,61 @@
 "use client";
-import { useState } from "react";
 
-type Contributor = {
+import { useEffect, useState } from "react";
+import axios from "axios";
+
+// Contributor type for frontend
+interface Contributor {
   name: string;
   contributions: number;
-};
+}
 
-type TopContributorsProps = {
-  contributors: Contributor[];
-};
+// Backend response type
+interface ApiContributor {
+  user_id: number;
+  username: string;
+  email: string;
+  total_count: number;
+}
 
-export default function TopContributors({
-  contributors,
-}: TopContributorsProps) {
+interface ApiResponse {
+  message: string;
+  data: ApiContributor[];
+  timestamp: string;
+}
+
+export default function TopContributors() {
+  const [contributors, setContributors] = useState<Contributor[]>([]);
   const [page, setPage] = useState(0);
   const itemsPerPage = 7;
+
+  useEffect(() => {
+    const fetchTopContributors = async () => {
+      try {
+        const token = localStorage.getItem("token") || "";
+
+        const res = await axios.get<ApiResponse>(
+          "https://herald-hub-backend.onrender.com/users/top-contributors",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        // Map backend data to frontend Contributor type
+        const data: Contributor[] = res.data.data.map((item) => ({
+          name: item.username,
+          contributions: item.total_count,
+        }));
+
+        setContributors(data);
+      } catch (err) {
+        console.error("Failed to fetch top contributors", err);
+      }
+    };
+
+    fetchTopContributors();
+  }, []);
 
   const totalPages = Math.ceil(contributors.length / itemsPerPage);
   const startIndex = page * itemsPerPage;
