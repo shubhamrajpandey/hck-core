@@ -1,19 +1,19 @@
 "use client";
 
-import ModeratorLevel from "@/components/dropdown/ModeratorLevel";
-import ModeratorProgram from "@/components/dropdown/ModeratorProgram";
+import WeekManager from "@/components/dropdown/WeekDropdownManager";
 import RichTextEditor from "@/components/layout/RichTextEditor/RichTextEditor";
 import React, { useRef, useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { File, Link, Download, X } from "lucide-react";
+import { File as FileIcon, Link as LinkIcon, Download, X } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import CategoryDropDown from "@/components/dropdown/ResourceCategory";
 import ResourceTypeDropdown from "@/components/dropdown/ResourceTypeDropdown";
 import { axiosInstance } from "@/services/axiosInstance";
 import toast, { Toaster } from "react-hot-toast";
 import { useSelected } from "@/context/selectedContext";
-import RealModeratorModule from "@/components/ModeratorDropdown/RealmoderatorModule";
-import RealModeratorWeekDropdown from "@/components/ModeratorDropdown/realmoderatorweekdropdown";
+import { motion } from "framer-motion";
+import AssignedModuleDropdown from "@/components/dropdown/AssignedModuleDropdown";
 
 type FormData = {
   topic: string;
@@ -24,6 +24,10 @@ type FormData = {
 interface ExtraResourceFormData {
   topic: string;
   tag?: string;
+}
+interface Category {
+  categoryId: number;
+  categoryName: string;
 }
 
 function Page() {
@@ -57,15 +61,45 @@ function Page() {
     "normal"
   );
 
-  const [selectedFacultyId, setSelectedFacultyId] = useState<number | null>(
-    null
-  );
-  const [selectedLevelId, setSelectedLevelId] = useState<number | null>(null);
+
+
   const [selectedModuleId, setSelectedModuleId] = useState<number | null>(null);
 
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+  const [errorCategories, setErrorCategories] = useState<string | null>(null);
+
+  const [newCategory, setNewCategory] = useState("");
+  const [editingCategoryId, setEditingCategoryId] = useState<number | null>(
+    null
+  );
+  const [manageMode, setManageMode] = useState(false);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    setLoadingCategories(true);
+    try {
+      const response = await axiosInstance.get("/categories");
+      if (response.data && Array.isArray(response.data.data)) {
+        setCategories(response.data.data);
+        setErrorCategories(null);
+      } else {
+        setCategories([]);
+        setErrorCategories("No categories found");
+      }
+    } catch (err) {
+      console.error(err);
+      setErrorCategories("Failed to fetch categories");
+    } finally {
+      setLoadingCategories(false);
+    }
+  };
 
   const handleAddFileClick = () => {
     fileInputRef.current?.click();
@@ -181,311 +215,479 @@ function Page() {
     setFiles([]);
     setExternalLinks([]);
     setSelectedCategory(null);
-    setSelectedFacultyId(null);
-    setSelectedLevelId(null);
     setSelectedModuleId(null);
   };
 
   if (!isChecked) return null;
 
+  const handleAddCategory = async () => {
+    if (!newCategory.trim()) return;
+    try {
+      await axiosInstance.post("/categories/category", {
+        categoryName: newCategory,
+      });
+      setNewCategory("");
+      fetchCategories();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleUpdateCategory = async () => {
+    if (!newCategory.trim() || editingCategoryId === null) return;
+    try {
+      await axiosInstance.patch(`/categories/${editingCategoryId}`, {
+        categoryName: newCategory,
+      });
+      setEditingCategoryId(null);
+      setNewCategory("");
+      fetchCategories();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteCategory = async (id: number) => {
+    try {
+      await axiosInstance.delete(`/categories/${id}`);
+      fetchCategories();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
-    <div className="px-8">
+    <div className="min-h-[calc(100vh-40px)] pb-12">
       <Toaster position="top-center" reverseOrder={false} />
-      {isChecked && (
-        <div className="">
-          <div className="mt-8">
-            <h1 className="text-[26px] font-[500] ">
-              Create{" "}
-              <span className="text-[#74BF44] font-[600]">New Resource</span>
-            </h1>
-            <p className="text-[18px] font-[400] text-gray-500 tracking-[-0.2px] mt-2">
-              Add educational resources to help students learn effectively
-            </p>
-          </div>
 
-          <form
-            onSubmit={handleSubmit(onSubmit)}
-            className="mt-9 w-full max-w-[1423px] bg-white rounded-[7px] border border-gray-300 shadow-[0_2px_8px_rgba(0,0,0,0.3)] p-10"
-          >
-            <div className="space-y-1 mt-10">
-              <label className="text-[17px] font-[400] text-gray-700 ">
-                Topic <span className="text-red-600">*</span>
-              </label>
-              <input
-                {...register("topic", { required: "Topic is required" })}
-                type="text"
-                placeholder="Enter resource topic/title"
-                className="w-full rounded-[7px] mt-3 border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-[#74BF44]"
-              />
-              {errors.topic && (
-                <p className="text-red-500 text-sm">{errors.topic.message}</p>
-              )}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="max-w-9xl mx-auto px-6 lg:px-8"
+      >
+        {/* Header */}
+        <div className="pt-8">
+          <h1 className="text-2xl lg:text-[26px] font-semibold text-gray-900">
+            Create <span className="text-[#74BF44]">New Resource</span>
+          </h1>
+          <p className="mt-2 text-base text-gray-500">
+            Add educational resources to help students learn effectively
+          </p>
+        </div>
+
+        {/* Main content cards */}
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6">
+          {/* Resource Information card */}
+          <div className="bg-white border border-gray-200 rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.3)] p-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <h2 className="text-[20px] font-semibold text-gray-800">
+                  Resource Information
+                </h2>
+                <p className="mt-1 text-[16px] text-gray-500">
+                  Enter the basic details for your educational resource
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="mt-2">
+                  <AssignedModuleDropdown
+                    selectedModuleId={selectedModuleId}
+                    setSelectedModuleId={setSelectedModuleId}
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="mt-6">
-              <label className="text-[17px] font-[400] text-gray-700 ">
-                Resource Type <span className="text-red-600">*</span>
-              </label>
-              <ResourceTypeDropdown
-                resourceType={resourceType}
-                setResourceType={setResourceType}
-              />
-            </div>
-
-            {resourceType === "normal" ? (
-              <div className="py-10 flex flex-col lg:flex-row lg:space-x-10 space-y-6 lg:space-y-0">
-                {/* Program */}
-                <div className="flex flex-col flex-1">
-                  <label className="text-[17px] font-[400] text-gray-700">
-                    Program <span className="text-red-600">*</span>
+            <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="col-span-1 lg:col-span-2 space-y-4">
+                <div>
+                 <label className="text-[17px] font-[400] text-gray-700">
+                    Topic <span className="text-red-600">*</span>
                   </label>
-                  <ModeratorProgram
-                    selectedFacultyId={selectedFacultyId}
-                    setSelectedFacultyId={setSelectedFacultyId}
+                  <input
+                    {...register("topic", { required: "Topic is required" })}
+                    type="text"
+                    placeholder="Enter resource topic/title"
+                    className="mt-2 w-full rounded-md border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#74BF44]  placeholder:text-[16px]"
+                  />
+                  {errors.topic && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.topic.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="mt-6">
+                  <label className="text-[17px] font-[400] text-gray-700">
+                    Resource Type <span className="text-red-600">*</span>
+                  </label>
+                  <ResourceTypeDropdown
+                    resourceType={resourceType}
+                    setResourceType={setResourceType}
                   />
                 </div>
 
-                <div className="flex flex-col lg:flex-row flex-1 gap-6">
-                  <div className="flex flex-col flex-1">
-                    <label className="text-[17px] font-[400] text-gray-700">
-                      Level <span className="text-red-600">*</span>
-                    </label>
-                    <ModeratorLevel
-                      selectedFacultyId={selectedFacultyId}
-                      selectedLevelId={selectedLevelId}
-                      setSelectedLevelId={setSelectedLevelId}
+                <div>
+                  <label className="text-[17px] font-[400] text-gray-700">
+                    Description <span className="text-red-600">*</span>
+                  </label>
+                  <div className="mt-2">
+                    <RichTextEditor
+                      value={description}
+                      onChange={(val) => {
+                        setDescription(val);
+                        setValue("description", val);
+                      }}
                     />
-                  </div>
-
-                  <div className="flex flex-col flex-1">
-                    <label className="text-[17px] font-[400] text-gray-700">
-                      Module <span className="text-red-600">*</span>
-                    </label>
-                    <RealModeratorModule
-                      selectedModuleId={selectedModuleId}
-                      setSelectedModuleId={setSelectedModuleId}
-                    />
-                  </div>
-                  <div className="flex flex-col flex-1">
-                    <div className="flex flex-col gap-3">
-                      <span>
-                        Weeks <span className="text-red-600">*</span>
-                      </span>
-                      <RealModeratorWeekDropdown
-                        ParameterModuleId={selectedModuleId}
-                      />
-                    </div>
                   </div>
                 </div>
               </div>
-            ) : (
-              <div className="py-10 flex flex-col">
-                <label className="text-[17px] font-[400] text-gray-700 ">
-                  Category <span className="text-red-600">*</span>
-                </label>
-                <CategoryDropDown
-                  selectedCategoryId={
-                    selectedCategory ? parseInt(selectedCategory) : null
-                  }
-                  setSelectedCategoryId={(id) =>
-                    setSelectedCategory(id?.toString() ?? null)
-                  }
-                />
-              </div>
-            )}
 
-            <div>
-              <div className="flex flex-col">
-                <label className="text-[17px] font-[400] text-gray-700 ">
-                  Language/Tag
-                </label>
-                <input
-                  {...register("tag")}
-                  type="text"
-                  className="w-full rounded-[7px] mt-3 border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-[#74BF44]"
-                />
+              <div className="col-span-1 space-y-4">
+                <div>
+                 <label className="text-[17px] font-[400] text-gray-700">
+                    Language/Tag
+                  </label>
+                  <input
+                    {...register("tag")}
+                    type="text"
+                    placeholder="HTML, CSS, JavaScript"
+                    className="mt-2 w-full rounded-md border border-gray-300 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#74BF44] placeholder:text-[16px]"
+                  />
+                </div>
+
+                {resourceType === "normal" ? (
+                  <>
+                    <div>
+                     <label className="text-[17px] font-[400] text-gray-700">
+                        Week <span className="text-red-600">*</span>
+                      </label>
+                      <div className="mt-5">
+                        <WeekManager selectedModuleId={selectedModuleId} />
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div>
+                    <label className="flex items-center justify-between text-sm font-medium text-gray-700">
+                      <span>
+                        Category <span className="text-red-600">*</span>
+                      </span>
+                      <span
+                        className="text-sm text-[#74BF44] cursor-pointer hover:underline"
+                        onClick={() => setManageMode((p) => !p)}
+                      >
+                        {manageMode ? "Close Manage" : "Manage Category"}
+                      </span>
+                    </label>
+
+                    {!manageMode ? (
+                      <div className="mt-2">
+                        <CategoryDropDown
+                          selectedCategoryId={
+                            selectedCategory ? parseInt(selectedCategory) : null
+                          }
+                          setSelectedCategoryId={(id) =>
+                            setSelectedCategory(id?.toString() ?? null)
+                          }
+                        />
+                      </div>
+                    ) : (
+                      <div className="mt-3">
+                        <div className="flex gap-2 items-center">
+                          <input
+                            type="text"
+                            value={newCategory}
+                            onChange={(e) => setNewCategory(e.target.value)}
+                            placeholder="Enter category name"
+                            className="flex-1 rounded-md border border-gray-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#74BF44]"
+                          />
+                          {editingCategoryId ? (
+                            <button
+                              type="button"
+                              onClick={handleUpdateCategory}
+                              className="px-3 py-2 rounded-md bg-[#74BF44] text-white text-sm font-medium hover:bg-green-600"
+                            >
+                              Update
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={handleAddCategory}
+                              className="px-3 py-2 rounded-md bg-[#74BF44] text-white text-sm font-medium hover:bg-green-600"
+                            >
+                              Add
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="mt-3 max-h-48 overflow-y-auto border border-gray-100 rounded-md">
+                          {loadingCategories ? (
+                            <div className="p-3 text-center text-gray-400">
+                              Loading categories...
+                            </div>
+                          ) : errorCategories ? (
+                            <div className="p-3 text-center text-red-500">
+                              {errorCategories}
+                            </div>
+                          ) : categories.length > 0 ? (
+                            categories.map((cat) => (
+                              <div
+                                key={cat.categoryId}
+                                className={`flex items-center justify-between px-3 py-2 text-sm cursor-pointer border-b last:border-none ${
+                                  editingCategoryId === cat.categoryId
+                                    ? "bg-yellow-50"
+                                    : "hover:bg-gray-50"
+                                }`}
+                                onClick={() =>
+                                  setSelectedCategory(cat.categoryId.toString())
+                                }
+                              >
+                                <span className="truncate">
+                                  {cat.categoryName}
+                                </span>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setEditingCategoryId(cat.categoryId);
+                                      setNewCategory(cat.categoryName);
+                                    }}
+                                    className="text-blue-500"
+                                    title="Edit"
+                                  >
+                                    <Pencil size={16} />
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteCategory(cat.categoryId);
+                                    }}
+                                    className="text-red-500"
+                                    title="Delete"
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="p-3 text-center text-gray-400">
+                              No categories found
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Attachments card */}
+          <div className="bg-white border border-gray-200 rounded-lg shadow-[0_2px_8px_rgba(0,0,0,0.3)] p-6">
+            <div className="flex items-start justify-between">
+              <div>
+                <h2 className="text-[22px] font-semibold text-gray-800">
+                  Attachments <span className="text-red-600">*</span>
+                </h2>
+                <p className="mt-1 text-[16px] text-gray-500">
+                  Upload multiple files and add multiple external links to
+                  support your resource
+                </p>
               </div>
             </div>
 
-            <div className="space-y-1 py-10">
-              <label className="text-[17px] font-[400] text-gray-700">
-                Description <span className="text-red-600">*</span>
-              </label>
-              <RichTextEditor
-                value={description}
-                onChange={(val) => {
-                  setDescription(val);
-                  setValue("description", val);
-                }}
-              />
-            </div>
-            <div className="mt-9 w-full max-w-[1423px] bg-white rounded-[7px] border border-gray-300 shadow-[0_2px_8px_rgba(0,0,0,0.3)] p-10">
-              <h1 className="text-[25px] font-[600] tracking-[0.5px] text-gray-800 mb-1">
-                Attachments <span className="text-red-600">*</span>
-              </h1>
-              <h1 className="text-[18px] font-[400] text-gray-500 tracking-[-0.2px] mt-2">
-                Upload multiple files and add multiple external links to support
-                your resource
-              </h1>
-
-              <div className="flex justify-between items-center mt-8 mb-6">
-                <h1 className="text-[20px] font-[500] tracking-[-0.2px]">
-                  Files ({files.length})
-                </h1>
-                <button
-                  type="button"
-                  onClick={handleAddFileClick}
-                  className="flex items-center gap-4 w-[200px] h-[40px] rounded-[7px] text-[15px] font-[600] text-gray-600 border border-gray-400 px-4 hover:bg-[#6868681A] cursor-pointer"
-                >
-                  <File size={14} />
-                  Add Another File
-                </button>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  className="hidden"
-                  multiple
-                />
-              </div>
-
-              {files.length === 0 ? (
-                <div className="border border-dashed border-gray-400 rounded-[7px] h-[360px] flex flex-col items-center justify-center text-gray-500">
-                  <File size={70} />
-                  <p className="mt-5 text-[22px] text-gray-400 font-[400]">
-                    No files added yet
-                  </p>
+            <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Files column */}
+              <div>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-medium text-gray-700 text-[17px]">  
+                    Files ({files.length})
+                  </h3>
                   <button
                     type="button"
                     onClick={handleAddFileClick}
-                    className="mt-4 w-[240px] h-[40px] rounded-[7px] border border-gray-400 text-[16px] font-[600] text-gray-600 tracking-[0.2px] cursor-pointer hover:bg-[#6868681A] flex items-center justify-center"
+                    className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md text-sm font-semibold hover:bg-gray-50"
                   >
-                    <span className="text-[25px] mr-4">+</span> Add Your First
-                    File
+                    <FileIcon size={16} />
+                    Add Another File
                   </button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleFileChange}
+                    className="hidden"
+                    multiple
+                  />
                 </div>
-              ) : (
-                <div className="border border-dashed border-gray-400 rounded-[7px] p-4">
-                  {files.map((file, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between border-b py-2"
-                    >
-                      <span className="text-gray-700">{file.name}</span>
+
+                <div className="mt-4">
+                  {files.length === 0 ? (
+                    <div className="h-72 rounded-md border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400">
+                      <FileIcon size={64} />
+                      <p className="mt-4 text-lg">No files added yet</p>
                       <button
                         type="button"
-                        onClick={() => handleRemoveFile(index)}
-                        className="text-red-500 hover:text-red-700"
+                        onClick={handleAddFileClick}
+                        className="mt-4 inline-flex items-center gap-3 px-4 py-2 border border-gray-300 rounded-md font-semibold hover:bg-gray-50"
                       >
-                        <X size={20} />
+                        <span className="text-2xl">+</span>
+                        Add Your First File
                       </button>
                     </div>
-                  ))}
+                  ) : (
+                    <div className="rounded-md border border-gray-200 divide-y">
+                      {files.map((file, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between px-4 py-3 text-sm"
+                        >
+                          <div className="truncate pr-4">{file.name}</div>
+                          <div className="flex items-center gap-3">
+                            <a
+                              // optional: create object url for preview (keeps logic unchanged)
+                              href={URL.createObjectURL(file)}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-gray-600 hover:text-gray-800 underline text-sm"
+                            >
+                              Open
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveFile(index)}
+                              className="text-red-500 hover:text-red-700"
+                              title="Remove"
+                            >
+                              <X size={18} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
-
-              <div className="flex justify-between items-center mt-10 mb-6">
-                <h1 className="text-[20px] font-[500] tracking-[-0.2px]">
-                  External Links ({externalLinks.length})
-                </h1>
-                <button
-                  type="button"
-                  onClick={handleAddLinkClick}
-                  className="flex items-center gap-4 w-[200px] h-[40px] rounded-[7px] text-[15px] font-[600] text-gray-600 border border-gray-400 px-4 hover:bg-[#6868681A] cursor-pointer"
-                >
-                  <Link size={14} />
-                  Add Another Link
-                </button>
               </div>
 
-              {externalLinks.length === 0 && !showLinkInput && (
-                <div className="border border-dashed border-gray-400 rounded-[7px] h-[360px] flex flex-col items-center justify-center text-gray-500">
-                  <Link size={70} />
-                  <p className="mt-5 text-[22px] text-gray-400 font-[400]">
-                    No external links added yet
-                  </p>
+              {/* External links column */}
+              <div>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-medium text-gray-700 text-[17px]">
+                    External Links ({externalLinks.length})
+                  </h3>
                   <button
                     type="button"
                     onClick={handleAddLinkClick}
-                    className="mt-4 w-[240px] h-[40px] rounded-[7px] border border-gray-400 text-[16px] font-[600] text-gray-600 tracking-[0.2px] cursor-pointer hover:bg-[#6868681A] flex items-center justify-center"
+                    className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md text-sm font-semibold hover:bg-gray-50"
                   >
-                    <span className="text-[25px] mr-4">+</span> Add Your First
-                    Link
+                    <LinkIcon size={16} />
+                    Add Another Link
                   </button>
                 </div>
-              )}
 
-              {showLinkInput && (
-                <div className="border border-dashed border-gray-400 rounded-[7px] h-[360px] flex flex-col items-center justify-center text-gray-500 p-6">
-                  <input
-                    type="text"
-                    value={newLink}
-                    onChange={(e) => setNewLink(e.target.value)}
-                    placeholder="Enter external link"
-                    className="w-full rounded-[7px] border border-gray-300 p-3 focus:outline-none focus:ring-2 focus:ring-[#74BF44] mb-4"
-                  />
-                  <div className="flex gap-4">
-                    <button
-                      type="button"
-                      onClick={handleSaveLink}
-                      className="w-[100px] h-[40px] rounded-[7px] bg-[#74BF44] text-white font-[600]"
-                    >
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleCancelLink}
-                      className="w-[100px] h-[40px] rounded-[7px] border border-gray-400 font-[600]"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {externalLinks.length > 0 && (
-                <div className="border border-dashed border-gray-400 rounded-[7px] p-4">
-                  {externalLinks.map((link, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between border-b py-2"
-                    >
-                      <a
-                        href={link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 underline"
-                      >
-                        {link}
-                      </a>
+                <div className="mt-4">
+                  {externalLinks.length === 0 && !showLinkInput ? (
+                    <div className="h-72 rounded-md border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400">
+                      <LinkIcon size={64} />
+                      <p className="mt-4 text-lg">
+                        No external links added yet
+                      </p>
                       <button
                         type="button"
-                        onClick={() => handleRemoveLink(index)}
-                        className="text-red-500 hover:text-red-700"
+                        onClick={handleAddLinkClick}
+                        className="mt-4 inline-flex items-center gap-3 px-4 py-2 border border-gray-300 rounded-md font-semibold hover:bg-gray-50"
                       >
-                        <X size={20} />
+                        <span className="text-2xl">+</span>
+                        Add Your First Link
                       </button>
                     </div>
-                  ))}
+                  ) : showLinkInput ? (
+                    <div className="h-72 rounded-md border-2 border-dashed border-gray-300 p-4">
+                      <div className="flex gap-3 items-center">
+                        <input
+                          type="text"
+                          value={newLink}
+                          onChange={(e) => setNewLink(e.target.value)}
+                          placeholder="Enter external link"
+                          className="flex-1 rounded-md border border-gray-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#74BF44]"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleSaveLink}
+                          className="px-3 py-2 rounded-md bg-[#74BF44] text-white text-sm font-medium"
+                        >
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleCancelLink}
+                          className="px-3 py-2 rounded-md border border-gray-300 text-sm font-medium hover:bg-gray-50"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-md border border-gray-200 divide-y">
+                      {externalLinks.map((link, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between px-4 py-3 text-sm"
+                        >
+                          <a
+                            href={link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 underline truncate pr-4"
+                          >
+                            {link}
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveLink(index)}
+                            className="text-red-500 hover:text-red-700"
+                            title="Remove"
+                          >
+                            <X size={18} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
+          </div>
 
-            <div className="flex justify-baseline gap-6 py-10 ml-[123vh]">
+          {/* Action bar (buttons) */}
+          <div className="flex justify-between items-center">
+            <div />
+            <div className="flex items-center gap-4">
+              <button
+                type="button"
+                className="px-4 py-2 rounded-md border border-gray-300 bg-white text-sm font-medium hover:bg-gray-50"
+              >
+                Save as Draft
+              </button>
+
               <button
                 type="submit"
                 disabled={submitting}
-                className={`flex items-center justify-center text-[16px] font-[600] w-[200px] h-[44px] rounded-[7px] text-white border border-[#68686873] bg-[#74BF44] cursor-pointer ${
+                className={`inline-flex items-center gap-2 px-5 py-2 rounded-md text-sm font-semibold text-white bg-[#74BF44] border border-[#74BF44] hover:bg-white hover:text-[#74BF44] ${
                   submitting ? "opacity-50 cursor-not-allowed" : ""
                 }`}
               >
-                <Download className="mr-2" size={20} />
+                <Download size={16} />
                 {submitting ? "Creating..." : "Create Resource"}
               </button>
             </div>
-          </form>
-        </div>
-      )}
+          </div>
+        </form>
+      </motion.div>
     </div>
   );
 }

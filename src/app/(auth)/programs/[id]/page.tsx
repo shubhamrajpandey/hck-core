@@ -122,7 +122,7 @@ export default function Resources() {
 								title={week.title}
 								detail={{
 									submittedBy: week.createdBy.username,
-									role: week.createdBy.role?.name || "Unknown",
+									role: week.createdBy.role?.name ,
 									subject: week.week.module.name,
 									level4: week.week.module.level.name,
 								}}

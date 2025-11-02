@@ -51,7 +51,7 @@ export default function Login() {
       } else if (role === "Moderator") {
         router.push("/moderatordashboard");
       } else if (role === "Student") {
-        router.push("/programs");
+        router.push("/home");
       }
     }
   };
@@ -132,9 +132,7 @@ export default function Login() {
                 />
                 <label htmlFor="rememberMe">Remember me</label>
               </div>
-              <Link href="#" className="text-primary hover:underline">
-                Forgot your password?
-              </Link>
+             
             </div>
 
             {/* Login button */}
@@ -146,27 +144,10 @@ export default function Login() {
             </button>
 
             {/* Divider */}
-            <div className="flex items-center gap-3">
-              <div className="flex-1 border-t border-gray-300"></div>
-              <span className="text-sm text-gray-500">Or Continue with</span>
-              <div className="flex-1 border-t border-gray-300"></div>
-            </div>
+            
 
             {/* Microsoft Outlook button */}
-            <button
-              type="button"
-              className="flex items-center justify-center gap-3 border border-gray-400 py-3 rounded-lg md:w-[415px] md:h-[60px] w-full h-auto cursor-pointer"
-            >
-              <Image
-                src="/imgs/misc/msoutlook.jpeg"
-                alt="Microsoft Outlook"
-                width={38}
-                height={38}
-              />
-              <span className="font-medium">
-                Sign in with Microsoft Outlook
-              </span>
-            </button>
+            
 
             {/* Signup link */}
             <p className="text-sm text-center mt-2">
@@ -184,7 +165,7 @@ export default function Login() {
             src="/imgs/ui/image.png"
             alt="Illustration"
             fill
-            className="object-contain mt-15 mr-20"
+            className="object-contain mt-1 mr-20"
             priority
           />
         </div>

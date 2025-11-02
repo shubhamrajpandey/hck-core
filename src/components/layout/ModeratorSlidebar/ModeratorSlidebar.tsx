@@ -35,9 +35,22 @@ export default function MOderatorSlideBar() {
   ];
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    router.push("/");
-  };
+  // Remove token and role from both localStorage and sessionStorage
+  localStorage.removeItem("token");
+  localStorage.removeItem("Role");
+  sessionStorage.removeItem("token");
+  sessionStorage.removeItem("Role");
+
+  // Optionally, clear all storage if you want to ensure complete logout
+  // localStorage.clear();
+  // sessionStorage.clear();
+
+  // Redirect to login/home page
+  router.push("/");
+
+  // Optional: reload page to reset any app state
+  // window.location.reload();
+};
 
   return (
     <aside className="fixed top-0 left-0 h-screen w-80 bg-white border-r border-gray-200 flex flex-col overflow-hidden z-30">
