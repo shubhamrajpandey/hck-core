@@ -35,22 +35,22 @@ export default function MOderatorSlideBar() {
   ];
 
   const handleLogout = () => {
-  // Remove token and role from both localStorage and sessionStorage
-  localStorage.removeItem("token");
-  localStorage.removeItem("Role");
-  sessionStorage.removeItem("token");
-  sessionStorage.removeItem("Role");
+    // Remove token and role from both localStorage and sessionStorage
+    localStorage.removeItem("token");
+    localStorage.removeItem("Role");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("Role");
 
-  // Optionally, clear all storage if you want to ensure complete logout
-  // localStorage.clear();
-  // sessionStorage.clear();
+    // Optionally, clear all storage if you want to ensure complete logout
+    // localStorage.clear();
+    // sessionStorage.clear();
 
-  // Redirect to login/home page
-  router.push("/");
+    // Redirect to login/home page
+    router.push("/");
 
-  // Optional: reload page to reset any app state
-  // window.location.reload();
-};
+    // Optional: reload page to reset any app state
+    // window.location.reload();
+  };
 
   return (
     <aside className="fixed top-0 left-0 h-screen w-80 bg-white border-r border-gray-200 flex flex-col overflow-hidden z-30">
@@ -59,12 +59,10 @@ export default function MOderatorSlideBar() {
           <Image
             src="/imgs/icons/hck core logo.svg"
             alt="HCK Core Logo"
-            width={100}
-            height={78}
-            className="w-[140px] h-[100px]"
+            width={60}
+            height={50}
           />
         </div>
-        
       </div>
       <nav className="flex-1 px-4 py-6 space-y-3 text-[17px] font-[500] tracking-[-0.18px]">
         {navItems.map((item) => {
@@ -94,12 +92,8 @@ export default function MOderatorSlideBar() {
               <FiUser size={22} />
             </div>
             <div>
-              <p className="text-[15px] font-[500] text-gray-900">
-                Moderator
-              </p>
-              <p className="text-xs text-[#74BF44] font-semibold">
-                HCK
-              </p>
+              <p className="text-[15px] font-[500] text-gray-900">Moderator</p>
+              <p className="text-xs text-[#74BF44] font-semibold">HCK</p>
             </div>
           </div>
 
