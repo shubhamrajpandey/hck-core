@@ -57,7 +57,7 @@ export default function MOderatorSlideBar() {
       <div className="border-b border-gray-200 flex gap-28">
         <div>
           <Image
-            src="/imgs/HCKCORE.png"
+            src="/imgs/icons/hck core logo.svg"
             alt="HCK Core Logo"
             width={100}
             height={78}
